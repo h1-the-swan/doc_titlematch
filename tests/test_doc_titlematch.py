@@ -34,3 +34,16 @@ class TestDoc_titlematch(unittest.TestCase):
         docmatch.make_es_query()
         response = docmatch.es_response
         assert response.success()
+
+    def test_003_numconfident(self):
+        docmatch = doc_titlematch.DocMatch(self.origin_doc, target_index='mag_titles')
+        docmatch.make_es_query()
+        docmatch.get_number_confident_matches()
+        assert docmatch.num_confident_matches == 1
+
+        doc_negative = doc_titlematch.Doc(id=13, title="This article does not exist and shouldn't match any")
+        docmatch = doc_titlematch.DocMatch(doc_negative, target_index='mag_titles')
+        docmatch.make_es_query()
+        docmatch.get_number_confident_matches()
+        assert docmatch.num_confident_matches == 0
+

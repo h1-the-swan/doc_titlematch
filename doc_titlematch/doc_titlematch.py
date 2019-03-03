@@ -81,7 +81,7 @@ class DocMatch(object):
     def get_percent_diff(self, a, b):
         return (a-b) / a
 
-    def get_number_confident_matches(self, origin_title=None, matches=None, score_threshold=45, fuzz_ratio_threshold=50, scorediff_threshold=.25):
+    def get_number_confident_matches(self, origin_title=None, matches=None, score_threshold=70, fuzz_ratio_threshold=80, scorediff_threshold=.25):
         """Use heuristics to determine how many of the matches are actual matches.
         Strategy:
         If the first hit is above a certain threshold, consider it a match.
@@ -103,8 +103,8 @@ class DocMatch(object):
         while True:
             doc = matches[i]
             if doc.hit.meta.score < score_threshold:
-                fuzz_ratio = self.get_fuzz_ratio(origin_title, doc.hit.title)
-                if fuzz_ratio < fuzz_ratio_threshold:
+                doc.fuzz_ratio = self.get_fuzz_ratio(origin_title, doc.hit.title)
+                if doc.fuzz_ratio < fuzz_ratio_threshold:
                     break
             num_matches += 1
             if i == len(matches) - 1:
