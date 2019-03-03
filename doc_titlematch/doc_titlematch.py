@@ -96,6 +96,8 @@ class DocMatch(object):
         if origin_title is None:
             origin_title = self.origin.title
         if matches is None:
+            if not self.matches:
+                self.make_es_query()
             matches = self.matches
 
         num_matches = 0
