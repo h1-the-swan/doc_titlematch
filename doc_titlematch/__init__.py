@@ -4,3 +4,5 @@
 
 __author__ = """Jason Portenoy"""
 __version__ = '0.1.0'
+
+from .doc_titlematch import *
