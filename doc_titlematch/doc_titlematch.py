@@ -6,6 +6,7 @@ from elasticsearch import Elasticsearch
 es = Elasticsearch([{'host': 'localhost', 'port': 9200, 'timeout': 60}])
 from elasticsearch_dsl import Search
 
+from pandas import Series
 from fuzzywuzzy import fuzz
 
 
@@ -119,3 +120,27 @@ class DocMatch(object):
         self.num_confident_matches = num_matches
         return num_matches
 
+class CollectionMatch(object):
+
+    """Object to match a collection of papers"""
+
+    def __init__(self, origin_docs, origin_dataset, target_index):
+        """
+        :origin_docs: dict or pandas Series of {id: title}
+        :origin_dataset: name of the dataset from which the collection comes (e.g., "wos")
+        :target_index: index in elasticsearch to match
+        """
+        if isinstance(origin_docs, Series):
+            origin_docs = origin_docs.to_dict()
+        self.origin_docs = origin_docs
+        self.origin_dataset = origin_dataset
+        self.target_index = target_index
+
+        # initialize DocMatch objects
+        self.docmatch_objects = []
+        for id, title in self.origin_docs.items():
+            self.docmatch_objects.append(self._get_docmatch_obj(id, title, self.origin_dataset, self.target_index))
+
+    def _get_docmatch_obj(self, id, title, dataset, target_index):
+        doc = Doc(id, title, dataset, is_origin=True)
+        return DocMatch(doc, target_index=target_index)
