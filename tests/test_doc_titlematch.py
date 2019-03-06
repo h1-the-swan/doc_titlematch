@@ -79,3 +79,10 @@ class TestMatchCollection(unittest.TestCase):
             dm.get_number_confident_matches()
         for dm in self.collmatch.docmatch_objects:
             assert dm.num_confident_matches >= 0
+
+    def test_003_get_all_confident_matches(self):
+        confident_match_dict = self.collmatch.get_all_confident_matches()
+        for origin_id, target_ids in confident_match_dict.items():
+            docmatch = self.collmatch.docmatch_objects_by_id[origin_id]
+            num_confident_matches = docmatch.num_confident_matches
+            assert len(target_ids) == num_confident_matches

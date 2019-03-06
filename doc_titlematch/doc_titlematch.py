@@ -48,6 +48,7 @@ class DocMatch(object):
         self.target_index = target_index
 
         self.matches = []
+        self.num_confident_matches = None
         
     def make_es_query(self, index_to_query=None, field_to_query='title', id_field='Paper_ID', query_type='common', additional_config={}):
         """Make a query to elasticsearch
@@ -120,6 +121,18 @@ class DocMatch(object):
         self.num_confident_matches = num_matches
         return num_matches
 
+    def confident_matches(self):
+        """Get a list of confident matches for this origin doc
+        :returns: list of matched IDs in target data
+
+        """
+        if not self.matches or self.num_confident_matches is None:
+            self.get_number_confident_matches()
+        match_ids = []
+        for match in self.matches[:self.num_confident_matches]:
+            match_ids.append(match.id)
+        return match_ids
+
 class CollectionMatch(object):
 
     """Object to match a collection of papers"""
@@ -138,9 +151,23 @@ class CollectionMatch(object):
 
         # initialize DocMatch objects
         self.docmatch_objects = []
+        self.docmatch_objects_by_id = {}
         for id, title in self.origin_docs.items():
-            self.docmatch_objects.append(self._get_docmatch_obj(id, title, self.origin_dataset, self.target_index))
+            dm = self._get_docmatch_obj(id, title, self.origin_dataset, self.target_index)
+            self.docmatch_objects.append(dm)
+            self.docmatch_objects_by_id[id] = dm
 
     def _get_docmatch_obj(self, id, title, dataset, target_index):
         doc = Doc(id, title, dataset, is_origin=True)
         return DocMatch(doc, target_index=target_index)
+
+    def get_all_confident_matches(self):
+        """Get all confident matches (IDs) for the origin docs in this collection
+        :returns: dict {origin_id: [list of target IDs]}
+
+        """
+        matches = {}
+        for dm in self.docmatch_objects:
+            matches[dm.origin.id] = dm.confident_matches()
+        self.confident_match_dict = matches
+        return matches
