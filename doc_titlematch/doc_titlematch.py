@@ -37,7 +37,7 @@ class DocMatch(object):
 
     """Object for matching a title in one dataset (associated with an ID) with a title or titles in another dataset (associated with a different ID)"""
 
-    def __init__(self, origin=None, elasticsearch_client=es, target_index=None):
+    def __init__(self, origin=None, elasticsearch_client=es, target_index=None, target_id_field='Paper_ID'):
         """
         :origin: Doc object for the document to be matched
         :target_index: the index in Elasticsearch to search for matches
@@ -46,11 +46,12 @@ class DocMatch(object):
         self.origin = origin
         self.elasticsearch_client = elasticsearch_client
         self.target_index = target_index
+        self.target_id_field = target_id_field
 
         self.matches = []
         self.num_confident_matches = None
         
-    def make_es_query(self, index_to_query=None, field_to_query='title', id_field='Paper_ID', query_type='common', additional_config={}):
+    def make_es_query(self, index_to_query=None, field_to_query='title', id_field=None, query_type='common', additional_config={}):
         """Make a query to elasticsearch
 
         :index_to_query: elasticsearch index to query
@@ -61,6 +62,8 @@ class DocMatch(object):
         """
         if index_to_query is None:
             index_to_query = self.target_index
+        if id_field is None:
+            id_field = self.target_id_field
         s = Search(using=self.elasticsearch_client, index=index_to_query)
         body = {field_to_query: self.origin.title}
         for k, v in additional_config.items():
