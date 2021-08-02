@@ -140,29 +140,31 @@ class CollectionMatch(object):
 
     """Object to match a collection of papers"""
 
-    def __init__(self, origin_docs, origin_dataset, target_index):
+    def __init__(self, origin_docs, origin_dataset, target_index, target_id_field='Paper_ID'):
         """
         :origin_docs: dict or pandas Series of {id: title}
         :origin_dataset: name of the dataset from which the collection comes (e.g., "wos")
         :target_index: index in elasticsearch to match
+        :target_id_field: name of ID field in the target index
         """
         if isinstance(origin_docs, Series):
             origin_docs = origin_docs.to_dict()
         self.origin_docs = origin_docs
         self.origin_dataset = origin_dataset
         self.target_index = target_index
+        self.target_id_field = target_id_field
 
         # initialize DocMatch objects
         self.docmatch_objects = []
         self.docmatch_objects_by_id = {}
         for id, title in self.origin_docs.items():
-            dm = self._get_docmatch_obj(id, title, self.origin_dataset, self.target_index)
+            dm = self._get_docmatch_obj(id, title, self.origin_dataset, self.target_index, self.target_id_field)
             self.docmatch_objects.append(dm)
             self.docmatch_objects_by_id[id] = dm
 
-    def _get_docmatch_obj(self, id, title, dataset, target_index):
+    def _get_docmatch_obj(self, id, title, dataset, target_index, target_id_field):
         doc = Doc(id, title, dataset, is_origin=True)
-        return DocMatch(doc, target_index=target_index)
+        return DocMatch(doc, target_index=target_index, target_id_field=target_id_field)
 
     def get_all_confident_matches(self):
         """Get all confident matches (IDs) for the origin docs in this collection
